@@ -3,7 +3,7 @@ import zmq
 
 class Server(threading.Thread):
 
-    def __init__(self, incoming_port=5570):
+    def __init__(self, incoming_port=55055):
 
         self._stop = threading.Event()
         self.incoming_port = incoming_port

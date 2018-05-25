@@ -1,10 +1,11 @@
 import threading
 import zmq
 import pickle
+import argparse
 
 class Client(threading.Thread):
 
-    def __init__(self, identity, remote_address="localhost", remote_port=5570):
+    def __init__(self, identity, remote_address="localhost", remote_port=55055):
         threading.Thread.__init__(self)
         self.identity = ('{}{}'.format('id_', identity)).encode()
         self.remote_address = remote_address
@@ -44,9 +45,9 @@ class Client(threading.Thread):
 
 import time
 
-def run_test(N=10, items=100):
+def run_test(N=10, items=100, server=None):
 
-    c = Client(1)
+    c = Client(1, remote_address=server)
     message = pickle.dumps(list(range(0,items)))
     start = time.time()
     for i in range(N):
@@ -59,7 +60,12 @@ def run_test(N=10, items=100):
 
 if __name__ == "__main__" :
 
-    run_test(N=1000)
-    run_test(N=10000)
-    run_test(N=100000)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--server", default="localhost",
+                        help="Remote server address")
+    args = parser.parse_args()
+
+    run_test(N=1000, server=args.server)
+    run_test(N=10000, server=args.server)
+    run_test(N=100000, server=args.server)
 
