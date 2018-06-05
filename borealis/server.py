@@ -3,10 +3,11 @@ import zmq
 
 class Server(threading.Thread):
 
-    def __init__(self, incoming_port=55055):
+    def __init__(self, service_port=55055, worker_port=55056):
 
         self._stop = threading.Event()
-        self.incoming_port = incoming_port
+        self.service_port = service_port
+        self.worker_port = worker_port
         threading.Thread.__init__(self)
 
     def stop(self):
@@ -21,11 +22,10 @@ class Server(threading.Thread):
         context = zmq.Context()
 
         frontend = context.socket(zmq.ROUTER)
-        frontend.bind("tcp://*:{}".format(self.incoming_port))
-        #frontend.bind("inproc://1")
+        frontend.bind('tcp://*:{}'.format(self.service_port))
         count = 0
-        #backend = context.socket(zmq.DEALER)
-        #backend.bind('tcp://
+        backend = context.socket(zmq.DEALER)
+        backend.bind('tcp://*:{}'.format(self.worker_port))
         poll = zmq.Poller()
         poll.register(frontend, zmq.POLLIN)
 
@@ -36,15 +36,13 @@ class Server(threading.Thread):
                     _id = frontend.recv()
                     msg = frontend.recv()
                     count += 1
-
                     if msg == b'end':
                         print("Got messages : ", count)
                         count = 0
 
-                    #print("Received message {} from {}".format(msg, id))
-
-                    #frontend.send(_id, zmq.SNDMORE)
-                    #frontend.send(b'Hello')
+                    frontend.send(_id, zmq.SNDMORE)
+                    frontend.send(b'Hello')
+                    del msg
 
 
         print("Got messages : ", count)

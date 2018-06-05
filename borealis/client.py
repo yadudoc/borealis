@@ -26,8 +26,6 @@ class Client(threading.Thread):
     def run(self, message=None):
 
         self.socket.send(message)
-        #print('Req from client {} sent.\n'.format(self.identity))
-        return
         received_reply = False
         while not received_reply:
             sockets = dict(self.poll.poll(1000))
@@ -50,11 +48,18 @@ def run_test(N=10, items=100, server=None):
     c = Client(1, remote_address=server)
     message = pickle.dumps(list(range(0,items)))
     start = time.time()
+    rtts = []
+
     for i in range(N):
+        _start = time.time()
         c.run(message=message)
+        _delta = time.time() - _start
+        rtts.append(_delta)
+
     c.run(message=b'end')
     delta = time.time() - start
 
+    print("RTTs min:{} ms max:{} ms avg:{} ms".format(min(rtts)*1000, max(rtts)*1000, sum(rtts)*1000/len(rtts)))
     print("Launched {} requests in {}s with task rate of {}.Tasks/s".format(N, delta, float(N)/delta))
 
 
@@ -67,5 +72,5 @@ if __name__ == "__main__" :
 
     run_test(N=1000, server=args.server)
     run_test(N=10000, server=args.server)
-    run_test(N=100000, server=args.server)
+    #run_test(N=100000, server=args.server)
 
